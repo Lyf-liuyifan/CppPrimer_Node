@@ -1,24 +1,24 @@
-#include "Sales_item.h"
+# C++ Primer 阅读补充
 
-int main(void){
-    // Sales_item item1(std::string("C++Primer")), item2(std::string("C++Primer"));
-    // std::cin >> item1 >>item2;
-    // std::cout << item1 + item2 << std::endl;
-    using std::cout;
-    using std::cin;
-    using std::endl;
-    Sales_item item;
-    std::cin >> item;
-    // cin.get();
-    for(Sales_item temp_item; std::cin >> temp_item; std::cout << item){
-        if(item.isbn() == temp_item.isbn()){
-            item += temp_item;
-        }else{
-            std::cout << "different bookNo" << endl;
-            break;
-        }
-        // cin.get();
-    }
-    cout << item;
-    return 0;
-}
+​	笔记主要是关于使用C++途中所需要注意的细节，以及对C++Primer的补充
+
+## 8.IO库
+
+### 8.1关于Cin
+
+#### 8.1.1Cin怎么读取输入的
+
+​	我们如果不知道cin到底怎么读取输入的话，会造成很多意外的情况和bug，比如当Cin要把输入读取到char类型当中的时候，他并不会忽略开头的换行符，假如我们前一次输入了回车，下一次读取输入就会把换行读进去，这并不是我们想看到的。
+
+​	其他的读入都是会忽略空白符（空格， 换行符， 制表符
+
+- Windows允许通过键盘模拟文件尾：Ctrl+Z
+
+#### 8.1.2Cin作为判断条件
+
+​	不仅Cin可以在while中做为循环的判断条件，在for循环中也可以，只要是bool类型的都可以，要学会灵活运用这点，可以做出更优美的代码。
+
+```c++
+for(Sales_item item;std::cin >> item; std::cout << item);
+```
+
