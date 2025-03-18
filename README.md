@@ -78,6 +78,103 @@ int& r = ci;//ci有底层所以不行
 const int& r2 = i;//可以因为非常量可以转换成非常量
 ```
 
+## 3.字符串、向量和数组
+
+### 3.2标准库类型string
+
+#### 3.2.2string对象上的操作
+
+​	stringt头文件里的getline函数可以读取输入的一整行，包括空白，他是遇到换行符(默认以换行符为分隔符）才停滞的，但是换行符不读到字符串里，但是读入缓冲区的换行符会被读取且丢掉。
+
+```cpp
+template< class CharT, class Traits, class Allocator >
+std::basic_istream<CharT, Traits>&
+getline( std::basic_istream<CharT, Traits>& input, std::basic_string<CharT, Traits, Allocator>& str );
+```
+
+### 3.3标准库类型vector
+
+#### 3.3.3其他vector操作
+
+**计算vector内对象的索引：**
+
+​	C++的字符串和C语言风格的字符串不同，C语言的字符串他含有'\o'，string却不含这个，所以对空string的索引是错误的
+
+```cpp
+string s;
+s[0] = 1;//错误
+```
+
+### 3.5数组
+
+#### 3.5.1定义和初始化内置数组
+
+​	再次强调一下，常量表达式不是所谓的常量，而是在编译期间就能确定的值，比如用const声明的变量，或者是字符串常量。constexpr变量用来由编译器验证变量的值是否是常量表达式（感觉就和const是一个差不多的效果。
+
+​	数组的维度里面必须是常量表达式
+
+```cpp
+int int_arr[常量表达式]；
+```
+
+**初始化**
+
+​	值得注意的是全局的内置类型数组声明时会初始化为默认值，而在函数内不显示初始化，是不会初始化的
+
+```cpp
+int a[10];//a中元素初始化为0
+int main(){
+	int b[10];//不会默认初始化，值为栈中垃圾值
+}
+```
+
+这样的原因是全局的数组是存储在静态存储区的，编译期间就能确定分配大小，为了确保程序的可确定性，编译器会主动初始化该值。
+但是在函数内部的，首先我们不知道函数会调用多少次，我们频繁的分配和释放栈内存，会影响效率，所以我们把这个任务交给程序员自己。
+
+#### 3.5.5与旧代码的接口
+
+**使用数组初始化vector对象**
+
+```cpp
+int arr_i[] = {0,1,2,3,4};
+vector<int> v(begin(arr_i), end(arr_i));
+vector<int> v1(arr_i, arr_i + 5);
+```
+
+==这种数组拷贝给vector的方式也很有意思，这里的指针被隐式转换成了迭代器。==
+
+```cpp
+template< class InputIt >
+vector( InputIt first, InputIt last,
+        const Allocator& alloc = Allocator() );
+```
+
+用的是这个构造函数。
+
+### 3.6多维数组
+
+三种循环:
+
+```
+int a[3][4] = {{...}, {...}, {...}};
+//for循环
+for(int i = 0; i < 3; i++){
+	for(int j = 0; j < 4; j++){
+		cout << a[i][j] << endl;
+	}
+}
+//范围for循环
+for(auto & i : a){
+	for(auto & j : i){
+		cout << j << endl;
+	}
+}
+//用指针
+for
+```
+
+
+
 
 
 ## 8.IO库
@@ -100,3 +197,14 @@ const int& r2 = i;//可以因为非常量可以转换成非常量
 for(Sales_item item;std::cin >> item; std::cout << item);
 ```
 
+## 16.模板与泛型编程
+
+### 16.1定义模板
+
+### 16.1.1函数模板
+
+**模板类型参数**
+
+​	模板类型参数用于指定返回类型或函数的参数类型，以及在函数体内用于变量声明或==类型转换==的
+
+​	**有个值得注意的就是：**新手容易把其他模板当做类型，我们的模板参数类型只能是vector<int>这类明确的类型，而不能是模板。
