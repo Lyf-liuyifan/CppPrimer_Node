@@ -1,5 +1,3 @@
-
-
 # C++ Primer 阅读补充
 
 ​	笔记主要是关于使用C++途中所需要注意的细节，以及对C++Primer的补充
@@ -243,6 +241,71 @@ Type (*funcNmae(param))[];
 
 值得注意的是返回数组指针的大括号内的参数是必须写的，因为这必须要编译期间明确的。
 
+### 6.4函数重载
+
+**重载和const形参**
+	顶层const不影响传入函数的对象。所以顶层const参数无法区分函数
+
+```cpp
+int sum(int i);
+int sum(const int i);//这两个函数是无法重载的
+```
+
+​	==但是底层const的可以==。
+
+### 6.5特殊用途语言特性
+
+#### 6.5.1默认实参
+
+​	默认实参只能从右往左填。不能从左边开始填。
+
+#### 6.5.2内联函数和constexpr函数（书上说的不够清楚
+
+​	内联函数和constexpr函数必须的放在头文件当中，因为内敛函数和constexpr函数的本质是在编译时期就进行替换而不是在运行时期通过声明链接到定义。所以这两个函数必须放在头文件当中。
+
+**constexpr函数**
+	constexpr函数运行的时候如果传入实参是constexpr表达式，则返回值也是constexpr，也就是说都可以在编译期间计算。但是假如传入的是运行时期计算的东西那么返回值也是。
+	这是constexpr函数的特性，即可运行时期，又可以编译时期。
+
+```cpp
+constexpr int new_sz(){return 2;}
+constexpr int foo = new_sz();//只有返回值也是constexpr声明的才会把函数当成编译时期运行的
+```
+
+- constexpr和const最大的区别在于，const仅仅只是声明某个仅可读，而constexpr则声明可以在编译时期运行。
+
+#### 6.5.3调试帮助
+
+程序可以包含一些用于调试的代码，但是这些代码只在开发程序的时候使用，当程序发布的时候得屏蔽掉。这种方法用到两项预处理功能：assert和NDEBUG。
+
+**assert预处理宏**
+
+​	assert是一种宏，定义在cassert头文件里，也就是说它没有命名空间
+
+```cpp
+assert(expr)//当expr为0的时候，assert会输出信息并会直接终止程序
+```
+
+**NDEBUG预处理变量**
+
+​	assert的行为依赖于NDEBUG变量，假如程序没有定义此变量，那么就会执行assert，定义NDEBUGE能避免检查各种条件所需的运行时开销。
+
+## 7.类
+
+### 7.1定义抽象数据类型
+
+
+
+#### 7.1.4构造函数
+
+---
+
+**补充：**
+
+- 假如我们类的数据成员有默认值得时候，我们在构造函数的初始化列表的地方是可以跳过该成员的
+
+
+
 ## 8.IO库
 
 ### 8.1关于Cin
@@ -282,3 +345,61 @@ for(Sales_item item;std::cin >> item; std::cout << item);
 ​	模板类型参数用于指定返回类型或函数的参数类型，以及在函数体内用于变量声明或==类型转换==的
 
 ​	**有个值得注意的就是：**新手容易把其他模板当做类型，我们的模板参数类型只能是vector<int>这类明确的类型，而不能是模板。
+
+### 16.2模板实参推断
+
+#### 16.2.7转发
+
+---
+
+**补充：**
+
+​	关于完美转发和右值引用很容易混淆
+
+1. 右值引用的本质：
+
+- 右值：临时对象、字面量、或显示通过std::move标记的对象
+- 右值引用：通过T&&绑定到右值，表示资源的可移动性，按我的理解就是原本右值是语句结束就销毁的，一旦和右值引用绑定后就代表这个右值和右值变量成了一个可移动的资源。
+- 关键特性：
+
+​	右值引用在函数内部会==退化为具名对象==，而具名对象会被视为**左值**。
+
+```cpp
+void target(int& x){}
+void target(int&& x){}
+
+template <typename T>
+void wrapper(T&& arg){
+	target(arg);//这里arg是左值不管arg绑定的实参是左值还是右值
+}
+```
+
+2.std::forward的作用
+
+​	std::forward是有条件的转换工具，仅在参数原始类型是右值时，将其转换成右值引用。意思就是
+
+```cpp
+void target(int& x){}
+void target(int&& x){}
+
+template <typename T>
+void wrapper(T&& arg){
+	target(std::forward<T>(arg));//保留右值属性
+}
+```
+
+- 关键点：
+
+​		std::forward<T>(arg)根据T的推导结果（左值还是右值），**决定**是否将arg转换为右值引用。
+
+```cpp
+template <typename T>
+T&& forwarding(typename std::remove_reference<T>::type& arg){//std::remove_reference<T>::type是出去T引用的类型
+	return static_cast<T&&>(arg);
+}
+```
+
+1. 依赖类型的定义
+
+- 依赖类型：模板中的某个类型依赖于模板参数T
+- 问题：因为编译器在解析模板时，无法直接确定std::remove_reference<T>::type是类型还是其他成员（如静态成员、函数）
